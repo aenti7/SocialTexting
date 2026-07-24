@@ -1,92 +1,95 @@
-package com.example.socialtexting;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
+package com.example.st;
 
-public class STCommand implements CommandExecutor {
-    private final SocialTextingPlugin plugin;
+import org.bukkit.Bukkit;
+import org.bukkit.Player;
 
-    public STCommand(SocialTextingPlugin plugin) {
-        this.plugin = plugin;
-    }
+public class STCommand {
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage("Только игроки могут использовать эту команду!");
-            return true;
-        }
-        Player player = (Player) sender;
-
-        if (args.length == 0) {
-            player.sendMessage("/st [rus|eng] [ник] [причина] [номер]/[сообщение]");
-            player.sendMessage("Пример: /st rus Alex спам 5/Привет");
-            return true;
-        }
-
+    public static boolean processSTCommand(Player commandSender, String[] args) {
+        // Минимум 4 аргумента: /st [p/m] [rus/eng] [ник] [аргумент]
         if (args.length < 4) {
-            player.sendMessage("Неверный формат. Нужно 4 аргумента после /st.");
+            commandSender.sendMessage("Неверный формат. Напиши просто /st, чтобы увидеть примеры.");
             return true;
         }
 
-        return processSTCommand(player, args);
-    }
+        String mode = args[0].toLowerCase();
+        String language = args[1].toLowerCase();
+        String targetPlayer = args[2];
+        String argument = args[3];
 
-    private boolean processSTCommand(Player commandSender, String[] args) {
-        String language = args[0].toLowerCase();
-        String targetPlayer = args[1];
-        String reason = args[2];
-        String messageInfo = args[3];
-
-        if (!"rus".equals(language) && !"eng".equals(language)) {
-            commandSender.sendMessage("Первый аргумент должен быть 'rus' или 'eng'.");
-            return true;
-        }
-
-        String[] parts = messageInfo.split("/", 2);
-        if (parts.length != 2) {
-            commandSender.sendMessage("Формат: [номер]/[текст]");
-            return true;
-        }
-
-        String firstPart = parts[0];
-        String actualMessage = parts[1];
-        String displayText;
-
-        // Если ник совпадает с твоим — считаем firstPart текстом
-        if (targetPlayer.equalsIgnoreCase(commandSender.getName())) {
-            displayText = "сообщение «" + firstPart + "»";
-        } else {
-            // Если чужой ник — первый аргумент должен быть числом
-            if (isPositiveInteger(firstPart)) {
-                displayText = "сообщение под номером " + firstPart;
-            } else {
-                commandSender.sendMessage("Для чужого ника первый аргумент должен быть числом!");
-                return true;
-            }
-        }
-
+        String senderName = commandSender.getName();
         String finalMessage;
-        if ("rus".equals(language)) {
-            finalMessage = String.format("|||||||||| ST: Сообщение игрока %s было распознано как %s (%s). Не волнуйтесь, автор уже депортирован в Азкабан. ST работает в штатном режиме! ||||||||||",
-                    targetPlayer, reason, displayText);
+
+        if ("p".equals(mode)) {
+            // Режим P: оскорбление
+            if ("rus".equals(language)) {
+                finalMessage = "|||||||||| §4§lST§r: " +
+                        "§l" + senderName + "§r обозвал " +
+                        "§l" + targetPlayer + "§r как " +
+                        "\"" + argument + "\". " +
+                        "Азкабан проверяет данное оскорбление… " +
+                        "§4§lДЕПОРТИРОВАТЬ В АЗКАБАН!!!§r " +
+                        "ST работает в штатном режиме! ||||||||||";
+            } else {
+                finalMessage = "|||||||||| §4§lST§r: " +
+                        "§l" + senderName + "§r called " +
+                        "§l" + targetPlayer + "§r a \"" + argument + "\". " +
+                        "Azkaban is checking… " +
+                        "§4§lDEPORT TO AZKABAN!!!§r " +
+                        "ST operates normally! ||||||||||";
+            }
+            Bukkit.broadcastMessage(finalMessage);
+            return true;
+
+        } else if ("m".equals(mode)) {
+            String displayText;
+
+            if (targetPlayer.equalsIgnoreCase(senderName)) {
+                // Свой ник: аргумент — это просто текст
+                if ("rus".equals(language)) {
+                    displayText = "сообщение «" + argument + "»";
+                } else {
+                    displayText = "message \"" + argument + "\"";
+                }
+            } else {
+                // Чужой ник: аргумент должен быть натуральным числом
+                try {
+                    int number = Integer.parseInt(argument);
+                    if (number <= 0) throw new NumberFormatException();
+                    if ("rus".equals(language)) {
+                        displayText = "сообщение под номером " + number;
+                    } else {
+                        displayText = "message number " + number;
+                    }
+                } catch (NumberFormatException e) {
+                    commandSender.sendMessage("Для чужого ника аргумент должен быть натуральным числом!");
+                    return true;
+                }
+            }
+
+            String reason = argument;
+
+            if ("rus".equals(language)) {
+                finalMessage = "|||||||||| §4§lST§r: " +
+                        "Сообщение игрока " +
+                        "§l" + targetPlayer + "§r было распознано как " +
+                        "§l" + reason + "§r (" + displayText + "). " +
+                        "Не волнуйтесь, автор такого контента уже был депортирован с сервера в Азкабан для отбывания срока за свои слова. " +
+                        "ST работает в штатном режиме! ||||||||||";
+            } else {
+                finalMessage = "|||||||||| §4§lST§r: " +
+                        "§l" + targetPlayer + "§r's message was recognised as " +
+                        "§l" + reason + "§r (" + displayText + "). " +
+                        "Don't worry, the author of this content has already been deported from the server to Azkaban to cancel their terms of service. " +
+                        "ST operates normally! ||||||||||";
+            }
+
+            Bukkit.broadcastMessage(finalMessage);
+            return true;
+
         } else {
-            finalMessage = String.format("|||||||||| ST: %s's message was recognised as %s (%s). Don't worry, the author was deported to Azkaban. ST is operating normally! ||||||||||",
-                    targetPlayer, reason, displayText);
-        }
-
-        plugin.getServer().broadcastMessage(finalMessage);
-        commandSender.sendMessage("Отправлено в чат: " + actualMessage);
-        return true;
-    }
-
-    private boolean isPositiveInteger(String str) {
-        try {
-            int value = Integer.parseInt(str);
-            return value > 0;
-        } catch (NumberFormatException e) {
-            return false;
+            commandSender.sendMessage("Первый аргумент должен быть 'p' (оскорбление) или 'm' (старый режим).");
+            return true;
         }
     }
-          }
+}
