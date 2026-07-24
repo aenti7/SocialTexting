@@ -1,4 +1,4 @@
-package com.example.st;
+package com.example.socialtexting;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
