@@ -1,8 +1,8 @@
-name: Social Texting
-version: 1.0.0
-main: com.example.socialtexting.SocialTextingPlugin
-api-version: 1.21
+name: SocialTexting
+version: 1.0
+main: com.example.st.SocialTextingPlugin
+api-version: 1.16
 commands:
   st:
-    description: Команда модерации ST
-    usage: /st [rus|eng] [nick] [reason] [num]/[msg]
+    description: Система сообщений ST (Social Texting)
+    usage: /st
