@@ -1,4 +1,4 @@
-package com.example.st;
+package com.example.socialtexting;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Player;
@@ -88,7 +88,7 @@ public class STCommand {
             return true;
 
         } else {
-            commandSender.sendMessage("Первый аргумент должен быть 'p' (оскорбление) или 'm' (старый режим).");
+            commandSender.sendMessage("Первый аргумент должен быть 'p' (обзывательство) или 'm' (контент).");
             return true;
         }
     }
