@@ -1,0 +1,21 @@
+name: Build Plugin
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 21
+        uses: actions/setup-java@v2
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Build with custom script
+        run: |
+          wget https://repo1.maven.org/maven2/io/papermc/paper/paper-api/1.21-R0.1-SNAPSHOT/paper-api-1.21-R0.1-SNAPSHOT.jar -O paper-api.jar
+          mkdir -p target/classes
+          javac -d target/classes -cp "paper-api.jar" src/com/example/socialtexting/*.java
+          cp plugin.yml target/
+          cd target
+          jar cf ../SocialTexting.jar .
+          
